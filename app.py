@@ -1,26 +1,16 @@
 import streamlit as st
-import requests
+import google.generativeai as genai
 
-st.title("Assistente de Roteiros 🎬 - Groq")
+# Configura a chave a partir dos secrets
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
-prompt = st.text_area("Digite o tema do vídeo:", "")
+st.title("🎬 Gerador de Roteiros com Gemini")
+
+prompt = st.text_area("Escreva o tema do vídeo:", "")
 
 if st.button("Gerar roteiro") and prompt:
-    url = "https://api.groq.com/openai/v1/chat/completions"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {st.secrets['GROQ_API_KEY']}"
-    }
-    data = {
-        "model": "meta-llama/llama-4-scout-17b-16e-instruct",
-        "messages": [{"role": "user", "content": prompt}],
-        "temperature": 0.7,
-        "max_tokens": 500
-    }
-
-    response = requests.post(url, headers=headers, json=data)
-    result = response.json()
-
-    roteiro = result["choices"][0]["message"]["content"]
+    model = genai.GenerativeModel("gemini-1.5-flash")  # ou gemini-1.5-pro para mais qualidade
+    response = model.generate_content(f"Crie um roteiro de vídeo em tópicos sobre: {prompt}")
+    
     st.subheader("📑 Roteiro Gerado")
-    st.write(roteiro)
+    st.write(response.text)
