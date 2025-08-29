@@ -1,15 +1,26 @@
 import streamlit as st
-from openai import OpenAI
+import requests
 
-# Inicializa cliente
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+st.title("Assistente de Roteiros 🎬 - Groq")
 
-st.title("Assistente de Roteiros 🎬")
+prompt = st.text_area("Digite o tema do vídeo:", "")
 
-prompt = st.text_area("Digite seu tema de vídeo:")
-if st.button("Gerar roteiro"):
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[{"role":"user","content":prompt}]
-    )
-    st.write(response.choices[0].message.content)
+if st.button("Gerar roteiro") and prompt:
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {st.secrets['GROQ_API_KEY']}"
+    }
+    data = {
+        "model": "meta-llama/llama-4-scout-17b-16e-instruct",
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0.7,
+        "max_tokens": 500
+    }
+
+    response = requests.post(url, headers=headers, json=data)
+    result = response.json()
+
+    roteiro = result["choices"][0]["message"]["content"]
+    st.subheader("📑 Roteiro Gerado")
+    st.write(roteiro)
